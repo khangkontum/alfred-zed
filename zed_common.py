@@ -210,6 +210,68 @@ def parse_workspace_paths(paths):
     return [normalize_path(value) for value in stripped.splitlines() if value.strip()]
 
 
+def recent_workspace_labels(limit=50):
+    path = zed_db_path()
+    if not path.exists():
+        return []
+
+    connection = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    try:
+        rows = connection.execute(
+            """
+            SELECT w.paths, r.host, r.user, r.port, r.name
+            FROM workspaces w
+            LEFT JOIN remote_connections r ON r.id = w.remote_connection_id
+            WHERE w.paths IS NOT NULL
+              AND w.paths != ''
+            ORDER BY w.timestamp DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    finally:
+        connection.close()
+
+    labels = []
+    seen = set()
+    for paths, host, user, port, name in rows:
+        for project_path in parse_workspace_paths(paths):
+            basename = project_path.rsplit("/", 1)[-1]
+            if not basename or basename in seen:
+                continue
+            seen.add(basename)
+
+            if host:
+                authority = name or host
+                if user:
+                    authority = f"{user}@{authority}"
+                if port:
+                    authority = f"{authority}:{port}"
+                label = f"{authority} {project_path}"
+            else:
+                label = basename
+
+            labels.append({"basename": basename, "label": label})
+
+    return labels
+
+
+def display_title_for_window(title, workspace_labels=None):
+    if workspace_labels is None:
+        workspace_labels = recent_workspace_labels()
+
+    separator = " — "
+    prefix, suffix = (title.split(separator, 1) + [""])[:2] if separator in title else (title, "")
+    for workspace in workspace_labels:
+        if workspace["basename"] != prefix:
+            continue
+        if workspace["label"] == prefix:
+            return title
+        return f"{workspace['label']}{separator}{suffix}" if suffix else workspace["label"]
+
+    return title
+
+
 def list_zed_windows():
     script = """
 tell application "System Events"
@@ -233,6 +295,7 @@ return output
         message = (result.stderr or result.stdout).strip()
         raise RuntimeError(message or "Unable to read Zed windows")
 
+    workspace_labels = recent_workspace_labels()
     windows = []
     seen = set()
     for title in result.stdout.splitlines():
@@ -240,7 +303,10 @@ return output
         if not title or title in seen:
             continue
         seen.add(title)
-        windows.append({"title": title})
+        windows.append({
+            "title": title,
+            "display_title": display_title_for_window(title, workspace_labels),
+        })
 
     return windows
 

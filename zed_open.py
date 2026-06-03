@@ -118,14 +118,15 @@ def windows_script_filter(query):
     items = []
     for window in windows:
         title = window["title"]
-        if query and not matches(query, title):
+        display_title = window.get("display_title", title)
+        if query and not matches(query, title, display_title):
             continue
 
         items.append({
-            "title": title,
+            "title": display_title,
             "subtitle": "Focus open Zed window",
             "arg": f"window:{title}",
-            "autocomplete": title,
+            "autocomplete": display_title,
             "valid": True,
         })
 
