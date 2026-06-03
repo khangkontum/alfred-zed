@@ -71,6 +71,19 @@
 				<false/>
 			</dict>
 		</array>
+		<key>B6F07756-37DB-4E5F-B613-FD7B062D3835</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>37D2D818-AB67-4CB6-84F4-73949C98CA43</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
 	</dict>
 	<key>createdby</key>
 	<string>me</string>
@@ -125,6 +138,55 @@
 			<string>8E2DA98A-BA20-4612-A418-1867C110C25A</string>
 			<key>version</key>
 			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<true/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>keyword</key>
+				<string>!zow</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string>Loading open Zed windows...</string>
+				<key>script</key>
+				<string>/usr/bin/python3 ./zed_open.py windows</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Filter currently open Zed windows</string>
+				<key>title</key>
+				<string>Focus Zed Window</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>B6F07756-37DB-4E5F-B613-FD7B062D3835</string>
+			<key>version</key>
+			<integer>3</integer>
 		</dict>
 		<dict>
 			<key>config</key>
@@ -291,7 +353,7 @@
 		</dict>
 	</array>
 	<key>readme</key>
-	<string>Use !zo to filter and open Zed recent local projects. Use !zor for Zed SSH projects. Use !za ssh user@host /path to add a remote target.</string>
+	<string>Use !zo for recent local projects, !zor for SSH projects, !zow for open windows, and !za ssh user@host /path to add a remote target.</string>
 	<key>uidata</key>
 	<dict>
 		<key>2F606A61-A7E7-4FCA-83DD-1077B97E7A7E</key>
@@ -342,6 +404,13 @@
 			<real>560</real>
 			<key>ypos</key>
 			<real>80</real>
+		</dict>
+		<key>B6F07756-37DB-4E5F-B613-FD7B062D3835</key>
+		<dict>
+			<key>xpos</key>
+			<real>120</real>
+			<key>ypos</key>
+			<real>320</real>
 		</dict>
 	</dict>
 	<key>userconfigurationconfig</key>

@@ -7,6 +7,9 @@ sys.dont_write_bytecode = True
 
 from zed_common import (
     connection_label,
+    find_matching_zed_window,
+    focus_zed_window,
+    list_zed_windows,
     load_recent_local_projects,
     load_settings,
     normalize_path,
@@ -101,11 +104,59 @@ def local_script_filter(query):
     print(json.dumps({"items": items}, ensure_ascii=False))
 
 
-def open_in_zed(url):
-    if url.startswith("-"):
-        raise SystemExit(f"Refusing to open option-like path: {url}")
-    subprocess.Popen(["zed", url], start_new_session=True)
-    print(url)
+def windows_script_filter(query):
+    try:
+        windows = list_zed_windows()
+    except Exception as error:
+        print(json.dumps({"items": [{
+            "title": "Could not read Zed windows",
+            "subtitle": f"{error}. Grant Alfred Accessibility permission in macOS Settings.",
+            "valid": False,
+        }]}))
+        return
+
+    items = []
+    for window in windows:
+        title = window["title"]
+        if query and not matches(query, title):
+            continue
+
+        items.append({
+            "title": title,
+            "subtitle": "Focus open Zed window",
+            "arg": f"window:{title}",
+            "autocomplete": title,
+            "valid": True,
+        })
+
+    if not items:
+        items.append({
+            "title": "No open Zed windows found",
+            "subtitle": "Open a Zed project first, or grant Alfred Accessibility permission.",
+            "valid": False,
+        })
+
+    print(json.dumps({"items": items}, ensure_ascii=False))
+
+
+def open_in_zed(target):
+    if target.startswith("-"):
+        raise SystemExit(f"Refusing to open option-like path: {target}")
+
+    if target.startswith("window:"):
+        title = target.removeprefix("window:")
+        focus_zed_window(title)
+        print(title)
+        return
+
+    window = find_matching_zed_window(target)
+    if window:
+        focus_zed_window(window["title"])
+        print(window["title"])
+        return
+
+    subprocess.Popen(["zed", target], start_new_session=True)
+    print(target)
 
 
 def main():
@@ -114,6 +165,8 @@ def main():
 
     if mode == "open":
         open_in_zed(query)
+    elif mode == "windows":
+        windows_script_filter(query)
     elif mode == "remote":
         if not settings_path().exists():
             pass

@@ -2,6 +2,7 @@ import json
 import os
 import re
 import sqlite3
+import subprocess
 import sys
 from pathlib import Path
 
@@ -207,6 +208,97 @@ def parse_workspace_paths(paths):
             pass
 
     return [normalize_path(value) for value in stripped.splitlines() if value.strip()]
+
+
+def list_zed_windows():
+    script = """
+tell application "System Events"
+  tell process "Zed"
+    set windowNames to name of every window
+  end tell
+end tell
+set output to ""
+repeat with windowName in windowNames
+  set output to output & windowName & linefeed
+end repeat
+return output
+"""
+    result = subprocess.run(
+        ["osascript", "-e", script],
+        capture_output=True,
+        text=True,
+        timeout=3,
+    )
+    if result.returncode != 0:
+        message = (result.stderr or result.stdout).strip()
+        raise RuntimeError(message or "Unable to read Zed windows")
+
+    windows = []
+    seen = set()
+    for title in result.stdout.splitlines():
+        title = title.strip()
+        if not title or title in seen:
+            continue
+        seen.add(title)
+        windows.append({"title": title})
+
+    return windows
+
+
+def focus_zed_window(title):
+    script = """
+on run argv
+  set targetTitle to item 1 of argv
+  tell application "Zed" to activate
+  tell application "System Events"
+    tell process "Zed"
+      repeat with zedWindow in windows
+        if name of zedWindow is targetTitle then
+          perform action "AXRaise" of zedWindow
+          return "focused"
+        end if
+      end repeat
+    end tell
+  end tell
+  error "Zed window not found: " & targetTitle
+end run
+"""
+    result = subprocess.run(
+        ["osascript", "-e", script, title],
+        capture_output=True,
+        text=True,
+        timeout=3,
+    )
+    if result.returncode != 0:
+        message = (result.stderr or result.stdout).strip()
+        raise RuntimeError(message or f"Unable to focus Zed window: {title}")
+
+
+def find_matching_zed_window(path_or_url):
+    target = normalize_path(path_or_url)
+    project_name = target.rsplit("/", 1)[-1]
+    if target.startswith("ssh://"):
+        project_name = target.rstrip("/").rsplit("/", 1)[-1]
+
+    if not project_name:
+        return None
+
+    try:
+        windows = list_zed_windows()
+    except Exception:
+        return None
+
+    lower_project = project_name.lower()
+    for window in windows:
+        if window["title"].lower() == lower_project:
+            return window
+
+    for window in windows:
+        title = window["title"].lower()
+        if title.startswith(f"{lower_project} ") or title.startswith(f"{lower_project} —"):
+            return window
+
+    return None
 
 
 def connection_label(connection):
