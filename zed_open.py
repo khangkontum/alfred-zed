@@ -5,7 +5,14 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from zed_common import connection_label, load_settings, normalize_path, settings_path, zed_url
+from zed_common import (
+    connection_label,
+    load_recent_local_projects,
+    load_settings,
+    normalize_path,
+    settings_path,
+    zed_url,
+)
 
 
 def matches(query, *parts):
@@ -21,7 +28,7 @@ def iter_projects(settings):
                 yield connection, normalize_path(path)
 
 
-def script_filter(query):
+def remote_script_filter(query):
     try:
         settings, path = load_settings()
     except Exception as error:
@@ -58,9 +65,45 @@ def script_filter(query):
     print(json.dumps({"items": items}, ensure_ascii=False))
 
 
+def local_script_filter(query):
+    try:
+        projects, path = load_recent_local_projects()
+    except Exception as error:
+        print(json.dumps({"items": [{
+            "title": "Could not read Zed recent projects",
+            "subtitle": str(error),
+            "valid": False,
+        }]}))
+        return
+
+    items = []
+    for project in projects:
+        project_path = project["path"]
+        title = project_path.rsplit("/", 1)[-1] or project_path
+        if query and not matches(query, title, project_path):
+            continue
+
+        items.append({
+            "title": title,
+            "subtitle": f"Open {project_path} in Zed",
+            "arg": project_path,
+            "autocomplete": title,
+            "valid": True,
+        })
+
+    if not items:
+        items.append({
+            "title": "No Zed recent local projects found",
+            "subtitle": f"Recent projects database: {path}",
+            "valid": False,
+        })
+
+    print(json.dumps({"items": items}, ensure_ascii=False))
+
+
 def open_in_zed(url):
-    if not url.startswith("ssh://"):
-        raise SystemExit(f"Refusing to open non-SSH URL: {url}")
+    if url.startswith("-"):
+        raise SystemExit(f"Refusing to open option-like path: {url}")
     subprocess.Popen(["zed", url], start_new_session=True)
     print(url)
 
@@ -71,10 +114,12 @@ def main():
 
     if mode == "open":
         open_in_zed(query)
-    else:
+    elif mode == "remote":
         if not settings_path().exists():
             pass
-        script_filter(query)
+        remote_script_filter(query)
+    else:
+        local_script_filter(query)
 
 
 if __name__ == "__main__":

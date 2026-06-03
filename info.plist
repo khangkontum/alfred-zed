@@ -32,6 +32,19 @@
 				<false/>
 			</dict>
 		</array>
+		<key>8C746336-07AB-4651-92C5-F042BD35742D</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>37D2D818-AB67-4CB6-84F4-73949C98CA43</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
 		<key>79B84F16-9EA0-4937-8551-998C3F43B8E2</key>
 		<array>
 			<dict>
@@ -95,9 +108,58 @@
 				<key>queuemode</key>
 				<integer>1</integer>
 				<key>runningsubtext</key>
+				<string>Loading Zed recent projects...</string>
+				<key>script</key>
+				<string>/usr/bin/python3 ./zed_open.py local</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Filter Zed recent local projects</string>
+				<key>title</key>
+				<string>Open Zed Recent Project</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>37A886FA-F539-4D47-B613-8829E5631A30</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<true/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>0</integer>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>keyword</key>
+				<string>!zor</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
 				<string>Loading Zed SSH projects...</string>
 				<key>script</key>
-				<string>/usr/bin/python3 ./zed_open.py filter</string>
+				<string>/usr/bin/python3 ./zed_open.py remote</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -114,7 +176,7 @@
 			<key>type</key>
 			<string>alfred.workflow.input.scriptfilter</string>
 			<key>uid</key>
-			<string>37A886FA-F539-4D47-B613-8829E5631A30</string>
+			<string>8C746336-07AB-4651-92C5-F042BD35742D</string>
 			<key>version</key>
 			<integer>3</integer>
 		</dict>
@@ -153,7 +215,7 @@
 				<key>text</key>
 				<string>{query}</string>
 				<key>title</key>
-				<string>Opening Zed Remote</string>
+				<string>Opening Zed</string>
 			</dict>
 			<key>type</key>
 			<string>alfred.workflow.output.notification</string>
@@ -229,7 +291,7 @@
 		</dict>
 	</array>
 	<key>readme</key>
-	<string>Use !zo to filter and open Zed SSH projects from your Zed settings. Use !za ssh user@host /path to add a target.</string>
+	<string>Use !zo to filter and open Zed recent local projects. Use !zor for Zed SSH projects. Use !za ssh user@host /path to add a remote target.</string>
 	<key>uidata</key>
 	<dict>
 		<key>37A886FA-F539-4D47-B613-8829E5631A30</key>
@@ -252,6 +314,13 @@
 			<real>560</real>
 			<key>ypos</key>
 			<real>80</real>
+		</dict>
+		<key>8C746336-07AB-4651-92C5-F042BD35742D</key>
+		<dict>
+			<key>xpos</key>
+			<real>120</real>
+			<key>ypos</key>
+			<real>160</real>
 		</dict>
 		<key>79B84F16-9EA0-4937-8551-998C3F43B8E2</key>
 		<dict>

@@ -1,6 +1,8 @@
 import json
 import os
 import re
+import sqlite3
+import sys
 from pathlib import Path
 
 
@@ -122,6 +124,89 @@ def load_settings():
 def save_settings(settings, path):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(settings, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def zed_data_dir():
+    override = os.environ.get("ZED_DATA_DIR")
+    if override:
+        return Path(override).expanduser()
+
+    if sys.platform == "darwin":
+        return Path("~/Library/Application Support/Zed").expanduser()
+
+    xdg_data_home = os.environ.get("XDG_DATA_HOME")
+    if xdg_data_home:
+        return Path(xdg_data_home).expanduser() / "zed"
+
+    return Path("~/.local/share/zed").expanduser()
+
+
+def zed_db_path():
+    override = os.environ.get("ZED_DB_PATH")
+    if override:
+        return Path(override).expanduser()
+
+    db_root = zed_data_dir() / "db"
+    channel = os.environ.get("ZED_CHANNEL", "stable")
+    preferred = db_root / f"0-{channel}" / "db.sqlite"
+    if preferred.exists():
+        return preferred
+
+    for name in ("0-stable", "0-preview", "0-nightly", "0-dev"):
+        candidate = db_root / name / "db.sqlite"
+        if candidate.exists():
+            return candidate
+
+    return preferred
+
+
+def load_recent_local_projects(limit=100):
+    path = zed_db_path()
+    if not path.exists():
+        return [], path
+
+    connection = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    try:
+        rows = connection.execute(
+            """
+            SELECT paths, timestamp
+            FROM workspaces
+            WHERE remote_connection_id IS NULL
+              AND paths IS NOT NULL
+              AND paths != ''
+            ORDER BY timestamp DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    finally:
+        connection.close()
+
+    projects = []
+    seen = set()
+    for paths, timestamp in rows:
+        for project_path in parse_workspace_paths(paths):
+            if project_path in seen:
+                continue
+            seen.add(project_path)
+            projects.append({"path": project_path, "timestamp": timestamp})
+
+    return projects, path
+
+
+def parse_workspace_paths(paths):
+    if not paths:
+        return []
+
+    stripped = paths.strip()
+    if stripped.startswith("["):
+        try:
+            values = json.loads(stripped)
+            return [normalize_path(value) for value in values if value]
+        except json.JSONDecodeError:
+            pass
+
+    return [normalize_path(value) for value in stripped.splitlines() if value.strip()]
 
 
 def connection_label(connection):
